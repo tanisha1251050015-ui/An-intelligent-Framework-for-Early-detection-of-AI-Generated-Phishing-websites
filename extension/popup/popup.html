@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="popup.css" />
+    <title>PIP Inspector</title>
+  </head>
+  <body>
+    <main class="popup">
+      <h1>PIP Inspector</h1>
+      <p class="subtitle">Phishing Intelligence Platform — Phase 1</p>
+
+      <form id="inspect-form">
+        <label for="url-input">URL to inspect</label>
+        <input
+          id="url-input"
+          type="text"
+          placeholder="https://example.com"
+        />
+        <button type="submit" id="inspect-button">Inspect</button>
+      </form>
+
+      <section id="result" class="result" hidden></section>
+      <p id="status" class="status">Version 1.0.0</p>
+    </main>
+    <script src="popup.js?v=1.1.0"></script>
+  </body>
+</html>

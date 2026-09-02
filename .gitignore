@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / frontend
+node_modules/
+dist/
+.vite/
+coverage/
+*.tsbuildinfo
+
+# SQLite databases (local data only)
+backend/data/
+*.db
+*.sqlite3
+
+# Environment files — never committed, never read by the project
+.env
+.env.*
+
+# Logs and editor artifacts
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

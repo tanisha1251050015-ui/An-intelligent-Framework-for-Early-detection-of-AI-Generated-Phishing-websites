@@ -1,0 +1,9 @@
+{
+  "name": "pip-extension",
+  "private": true,
+  "version": "1.0.0",
+  "description": "PIP Inspector Chrome extension (Manifest V3) — Phase 0 foundation.",
+  "scripts": {
+    "test": "node tests/validate_manifest.js"
+  }
+}

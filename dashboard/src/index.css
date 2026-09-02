@@ -1,0 +1,210 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.5;
+}
+
+body {
+  margin: 0;
+  background: #f4f5f7;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #14161a;
+    color: #e6e8eb;
+  }
+}
+
+.app {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.subtitle {
+  color: #667085;
+  margin-top: -0.5rem;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e4e7ec;
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  margin-top: 1.5rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .card {
+    background: #1c1f26;
+    border-color: #2e323b;
+  }
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin: 0;
+}
+
+.status-grid dt {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #667085;
+}
+
+.status-grid dd {
+  margin: 0.15rem 0 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.status-grid dd.ok {
+  color: #067647;
+}
+
+.error {
+  color: #b42318;
+}
+
+.inspect-form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.inspect-form input {
+  flex: 1;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .inspect-form input {
+    background: #14161a;
+    color: inherit;
+    border-color: #2e323b;
+  }
+}
+
+.inspect-form button {
+  padding: 0.55rem 1.1rem;
+  border: none;
+  border-radius: 8px;
+  background: #2f6fed;
+  color: #fff;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.inspect-form button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.result {
+  margin-top: 1rem;
+  border-top: 1px solid #e4e7ec;
+  padding-top: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .result {
+    border-color: #2e323b;
+  }
+}
+
+.result-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.badge {
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.badge.safe {
+  background: #ecfdf3;
+  color: #067647;
+}
+
+.badge.suspicious {
+  background: #fffaeb;
+  color: #b54708;
+}
+
+.badge.malicious {
+  background: #fef3f2;
+  color: #b42318;
+}
+
+@media (prefers-color-scheme: dark) {
+  .badge.safe {
+    background: #053321;
+    color: #6ce9a6;
+  }
+
+  .badge.suspicious {
+    background: #3a2a05;
+    color: #fec84b;
+  }
+
+  .badge.malicious {
+    background: #3a1412;
+    color: #f97066;
+  }
+}
+
+.score {
+  font-size: 0.95rem;
+}
+
+.result-url {
+  overflow-wrap: anywhere;
+  color: #667085;
+  font-size: 0.9rem;
+}
+
+.reasons {
+  margin: 0.6rem 0;
+  padding-left: 1.2rem;
+}
+
+.reasons li {
+  margin-bottom: 0.25rem;
+}
+
+details pre {
+  background: #f4f5f7;
+  padding: 0.75rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 0.8rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  details pre {
+    background: #0f1115;
+  }
+}
+
+code {
+  background: #eef0f3;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+footer {
+  margin-top: 2rem;
+  color: #667085;
+  font-size: 0.875rem;
+}
