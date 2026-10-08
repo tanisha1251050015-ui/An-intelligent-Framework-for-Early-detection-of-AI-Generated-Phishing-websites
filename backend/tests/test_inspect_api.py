@@ -97,7 +97,15 @@ def test_response_contains_features_and_reasons(client):
         "hostname_digit_count",
         "hostname_hyphen_count",
     }
-    assert body["reasons"] == ["Hostname contains suspicious keyword(s): login"]
+    assert body["reasons"] == ["Hostname contains suspicious keyword: login"]
+
+
+def test_inspect_login_path_explanation_and_score(client):
+    body = client.post("/api/v1/inspect", json={"url": "https://example.com/login"}).json()
+    assert body["score"] == 10
+    assert body["classification"] == "safe"
+    assert body["reasons"] == ["URL path contains suspicious keyword: login"]
+    assert body["features"]["suspicious_keyword_locations"] == [["login", "path"]]
 
 
 def test_inspect_echoes_submitted_url(client):

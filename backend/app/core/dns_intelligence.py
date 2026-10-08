@@ -147,12 +147,14 @@ def inspect_hostname(hostname: str, timeout: float = DNS_TIMEOUT_SECONDS) -> dic
     def worker() -> None:
         try:
             holder["infos"] = socket.getaddrinfo(hostname, None)
-        except socket.gaierror as exc:
-            holder["error"] = {"type": "gaierror", "message": str(exc)}
-        except OSError as exc:  # includes socket.timeout
-            holder["error"] = {"type": "oserror", "message": str(exc)}
-        except Exception as exc:  # defensive: DNS must never crash the API
-            holder["error"] = {"type": "error", "message": str(exc)}
+        except socket.gaierror:
+            holder["error"] = {"type": "resolution_failed", "message": "The hostname could not be resolved."}
+        except socket.timeout:
+            holder["error"] = {"type": "timeout", "message": "DNS resolution timed out."}
+        except OSError:
+            holder["error"] = {"type": "resolution_failed", "message": "Network error during resolution."}
+        except Exception:  # defensive: DNS must never crash the API
+            holder["error"] = {"type": "internal_error", "message": "An unexpected error occurred during DNS resolution."}
 
     thread = threading.Thread(target=worker, daemon=True)
     started = time.monotonic()

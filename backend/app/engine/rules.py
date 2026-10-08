@@ -44,11 +44,20 @@ def _at_symbol(features: Features) -> Optional[RuleResult]:
 def _suspicious_keywords(features: Features) -> Optional[RuleResult]:
     if features.suspicious_keywords:
         penalty = min(10 * len(features.suspicious_keywords), 40)
+        location_map = dict(features.suspicious_keyword_locations)
+        phrases = []
+        for component, label in (("hostname", "Hostname"), ("path", "URL path"),
+                                 ("query", "URL query"), ("fragment", "URL fragment")):
+            keywords = [kw for kw in features.suspicious_keywords
+                        if location_map.get(kw) == component]
+            if keywords:
+                noun = "keyword" if len(keywords) == 1 else "keywords"
+                phrases.append(f"{label} contains suspicious {noun}: " + ", ".join(keywords))
+        reason = "; ".join(phrases) or "URL contains suspicious keyword(s): " + ", ".join(features.suspicious_keywords)
         return RuleResult(
             "suspicious_keywords",
             penalty,
-            "Hostname contains suspicious keyword(s): "
-            + ", ".join(features.suspicious_keywords),
+            reason,
         )
     return None
 

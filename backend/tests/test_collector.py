@@ -70,6 +70,29 @@ def test_collect_html_evidence():
     assert evidence["html"]["script_count"] == 1
     assert evidence["html"]["input_count"] == 3
     assert evidence["html"]["password_input_count"] == 1
+    assert evidence["html"]["visible_text"]
+    assert evidence["html"]["text"] == evidence["html"]["visible_text"]
+    assert evidence["html"]["text_length"] == len(evidence["html"]["visible_text"])
+
+
+def test_html_extraction_is_bounded_and_captures_security_structure():
+    page = (b"<title>Sign in</title><body>" + b"A" * 10000 +
+            b"<form action='https://outside.test/collect' method='post'>"
+            b"<input type='password'><input type='hidden'><textarea></textarea></form>"
+            b"<iframe src='https://frame.test'></iframe>"
+            b"<script src='https://cdn.test/a.js'></script><script>inline()</script></body>")
+    evidence = collect("https://example.com/", client=make_client(lambda request: httpx.Response(
+        200, headers={"content-type": "text/html"}, content=page
+    )))
+    html = evidence["html"]
+    assert len(html["visible_text"]) <= 8000
+    assert html["password_input_count"] == 1
+    assert html["hidden_input_count"] == 1
+    assert html["textarea_count"] == 1
+    assert html["iframe_count"] == 1
+    assert html["external_form_domains"] == ["outside.test"]
+    assert html["external_script_domains"] == ["cdn.test"]
+    assert html["inline_script_count"] == 1
 
 
 def test_private_target_never_contacts_network():

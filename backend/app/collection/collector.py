@@ -136,7 +136,7 @@ def collect(
                 body, truncated = _read_limited(response, max_bytes)
 
             content_type = response.headers.get("content-type") or ""
-            html = html_stats(body) if "text/html" in content_type.lower() else None
+            html = html_stats(body, str(response.url)) if "text/html" in content_type.lower() else None
 
             return {
                 "status": COLLECTED,

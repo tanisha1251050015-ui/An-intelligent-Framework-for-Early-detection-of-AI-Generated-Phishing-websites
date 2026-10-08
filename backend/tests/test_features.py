@@ -45,6 +45,14 @@ def test_suspicious_keywords_detected():
     assert features.suspicious_keywords == ("login", "verify")
 
 
+def test_suspicious_keyword_locations_are_component_accurate():
+    features = extract_features("https://example.com/login?verify=1#account")
+    assert features.suspicious_keywords == ("account", "login", "verify")
+    assert features.suspicious_keyword_locations == (
+        ("account", "fragment"), ("login", "path"), ("verify", "query")
+    )
+
+
 def test_no_suspicious_keywords():
     assert extract_features("https://example.com/").suspicious_keywords == ()
 

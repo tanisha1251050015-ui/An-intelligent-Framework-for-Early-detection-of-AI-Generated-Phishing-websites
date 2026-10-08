@@ -39,6 +39,14 @@ def test_suspicious_keyword_penalty():
     assert score("https://example.com/login") == 10
 
 
+def test_login_path_explanation_does_not_call_it_hostname():
+    outcome = score_features(extract_features("https://example.com/login"))
+    assert outcome.score == 10
+    assert outcome.classification == "safe"
+    assert "URL path contains suspicious keyword: login" in outcome.reasons
+    assert all("Hostname" not in reason for reason in outcome.reasons)
+
+
 def test_suspicious_keyword_penalty_capped():
     url = "https://example.com/login/verify/account/banking/confirm"
     assert score(url) == 40

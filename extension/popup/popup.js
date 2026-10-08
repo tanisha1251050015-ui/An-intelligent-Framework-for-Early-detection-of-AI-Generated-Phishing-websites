@@ -42,7 +42,11 @@ async function inspect(url) {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ url }),
+    body: JSON.stringify({
+  url,
+  collect: true,
+  intelligence: true
+}),
   });
 
   if (!response.ok) {
@@ -54,33 +58,36 @@ async function inspect(url) {
     );
   }
 
-  const result = await response.json();
+const result = await response.json();
 
-  console.log("[PIP] Backend inspection result:", result);
+console.log("[PIP] Backend inspection result:", result);
 
-  return result;
+if (typeof result.score !== "number") {
+  console.error("[PIP] Invalid score received:", result);
+  throw new Error("Backend returned an invalid risk score.");
+}
+
+if (!result.classification) {
+  console.error("[PIP] Missing classification:", result);
+  throw new Error("Backend returned no classification.");
+}
+
+return result;
+
 }
 
 function renderResult(result) {
-  console.log("[PIP] Rendering result:", result);
+  console.log("[PIP] COMPLETE BACKEND RESPONSE:", result);
 
-  // Backend contract uses "score", not "risk_score".
   const score = result.score;
   const classification = result.classification;
 
-  console.log("[PIP] Score received:", score);
-  console.log("[PIP] Classification received:", classification);
-
-  const reasons = Array.isArray(result.reasons) && result.reasons.length
-    ? result.reasons
-        .map((reason) => `<li>${escapeHtml(reason)}</li>`)
-        .join("")
-    : "<li>No risk indicators found.</li>";
-
-  const displayedScore =
-    score === null || score === undefined
-      ? "—"
-      : `${score}`;
+  const reasons =
+    Array.isArray(result.reasons) && result.reasons.length
+      ? result.reasons
+          .map((reason) => `<li>${escapeHtml(reason)}</li>`)
+          .join("")
+      : "<li>No risk indicators found.</li>";
 
   resultEl.innerHTML = `
     <div class="result-header">
@@ -89,11 +96,14 @@ function renderResult(result) {
       </span>
 
       <span class="score">
-        Risk score: <strong>${escapeHtml(displayedScore)}</strong>/100
+        Risk score:
+        <strong>${escapeHtml(score ?? "—")}</strong>/100
       </span>
     </div>
 
-    <p class="result-url">${escapeHtml(result.url || "")}</p>
+    <p class="result-url">
+      ${escapeHtml(result.url || "")}
+    </p>
 
     <ul class="reasons">
       ${reasons}
@@ -103,6 +113,13 @@ function renderResult(result) {
       <summary>Extracted features</summary>
       <pre>${escapeHtml(
         JSON.stringify(result.features || {}, null, 2)
+      )}</pre>
+    </details>
+
+    <details>
+      <summary>Raw backend response</summary>
+      <pre>${escapeHtml(
+        JSON.stringify(result, null, 2)
       )}</pre>
     </details>
   `;

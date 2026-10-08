@@ -88,13 +88,13 @@ def derive_domain_intelligence(
             if age_days is not None and age_days < 30:
                 signals.append({
                     "type": "very_new_certificate",
-                    "severity": "medium",
+                    "severity": "low",
                     "source": "ssl",
                 })
                 risk_hints.append(f"SSL certificate is only {age_days} days old")
                 reasoning.append(
                     f"The certificate was issued {age_days} day(s) ago, which "
-                    "is unusually new and common for short-lived phishing sites."
+                    "is a new certificate."
                 )
 
         elif status == "timeout":
@@ -229,20 +229,7 @@ def derive_domain_intelligence(
                 "by phishing campaigns."
             )
 
-        keywords = features.get("suspicious_keywords", ())
-        if keywords:
-            signals.append({
-                "type": "suspicious_keywords",
-                "severity": "medium",
-                "source": "features",
-            })
-            risk_hints.append(
-                f"Suspicious keywords found: {', '.join(keywords)}"
-            )
-            reasoning.append(
-                f"The URL contains phishing-associated keywords: "
-                f"{', '.join(keywords)}."
-            )
+
 
     return {
         "signals": signals,

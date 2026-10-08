@@ -6,14 +6,32 @@ returns ``not_configured``.
 """
 
 import os
+import shutil
 from pathlib import Path
 
 try:
     from PIL import Image
     import pytesseract
+
+    # Configure Tesseract executable
+    tesseract_path = os.environ.get("TESSERACT_CMD")
+
+    if not tesseract_path:
+        tesseract_path = shutil.which("tesseract")
+
+    if not tesseract_path:
+        default_path = Path(r"C:\Program Files\Tesseract-OCR\tesseract.exe")
+        if default_path.is_file():
+            tesseract_path = str(default_path)
+
+    if tesseract_path:
+        pytesseract.pytesseract.tesseract_cmd = tesseract_path
+
 except ImportError:
     Image = None
     pytesseract = None
+    
+
 
 from app.core.config import DATA_DIR
 
@@ -88,6 +106,21 @@ def extract_text(image_id: str) -> dict:
     except Exception:
         # Corrupted image, decompression bomb error (PIL), etc
         return {"status": "failed", "reason": "invalid_image"}
+
+    def _normalize_text(t: str) -> str:
+        if not t:
+            return t
+        try:
+            return t.encode('cp1252').decode('utf-8')
+        except (UnicodeEncodeError, UnicodeDecodeError):
+            pass
+        try:
+            return t.encode('latin1').decode('utf-8')
+        except (UnicodeEncodeError, UnicodeDecodeError):
+            pass
+        return t
+
+    text = _normalize_text(text)
 
     # 5. Output limits
     truncated = False

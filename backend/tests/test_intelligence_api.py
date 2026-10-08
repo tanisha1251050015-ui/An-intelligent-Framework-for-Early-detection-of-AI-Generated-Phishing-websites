@@ -57,7 +57,11 @@ def test_intelligence_true_runs_pipeline(client, monkeypatch):
 
     assert body["ssl"] == fake_ssl
     assert body["whois"] == fake_whois
-    assert body["intelligence"] == fake_intel
+    
+    assert body["intelligence"]["status"] == "informational"
+    assert "summary" in body["intelligence"]
+    assert "risk_evidence" in body["intelligence"]
+    assert "campaign" in body["intelligence"]
     assert body["score"] == 0  # Phase 1 unchanged
 
 

@@ -182,13 +182,7 @@ def test_suspicious_tld_signal():
     assert "suspicious_tld" in types
 
 
-def test_suspicious_keywords_signal():
-    """Suspicious keywords produce a signal."""
-    features = {"suspicious_keywords": ["login", "verify"]}
-    result = derive_domain_intelligence(features=features)
 
-    types = [s["type"] for s in result["signals"]]
-    assert "suspicious_keywords" in types
 
 
 def test_no_features():
@@ -196,7 +190,7 @@ def test_no_features():
     result = derive_domain_intelligence()
     types = [s["type"] for s in result["signals"]]
     assert not any(
-        t in ("ip_based_hostname", "suspicious_tld", "suspicious_keywords")
+        t in ("ip_based_hostname", "suspicious_tld")
         for t in types
     )
 

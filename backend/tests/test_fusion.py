@@ -146,7 +146,7 @@ def test_fusion_dns_error_reasoning():
         }
     )
 
-    assert any("dns" in r.lower() and "failed" in r.lower() for r in result["reasoning"])
+    assert any("could not be resolved" in r for r in result["reasoning"])
 
 
 def test_fusion_ssl_evidence():
@@ -239,18 +239,21 @@ def test_fusion_with_llm_data():
 
 
 def test_fusion_with_unavailable_sources():
-    """Fusion degrades gracefully if LLM, OCR, or Screenshot are unavailable."""
+    """Fusion properly categorizes attempted-but-failed and intentionally-not-executed sources."""
     result = fuse_intelligence(
         score=10,
         classification="safe",
-        llm_data={"status": "unavailable", "reason": "timeout"},
-        ocr_data={"status": "error"},
-        screenshot_data={"status": "error"}
+        llm_data={"status": "unavailable", "reason": "timeout"}, # attempted
+        ocr_data={"status": "not_run", "reason": "screenshot_unavailable"}, # not executed
+        screenshot_data={"status": "error"} # attempted
     )
-    # The unavailable sources should go to missing_sources or just not break the fusion
-    assert "llm" in result["missing_sources"]
-    assert "ocr" not in result["available_sources"]
+    # Attempted-but-failed sources go to failed_sources
+    assert "llm" in result["failed_sources"]
+    assert "screenshot" in result["failed_sources"]
+    assert "llm" not in result["available_sources"]
     assert "screenshot" not in result["available_sources"]
+    # Intentionally not executed go to missing_sources
+    assert "ocr" in result["missing_sources"]
     assert "score" not in result
     assert "classification" not in result
 
@@ -312,3 +315,35 @@ def test_fusion_output_limits():
     assert len(hint["type"]) <= 100
     assert len(hint["evidence"]) <= 1000
     assert len(result["summary"]) <= 2000
+
+
+def test_fusion_summary_score_preservation_safe():
+    """Verify fusion properly preserves safe Phase 1 score and classification."""
+    result = fuse_intelligence(
+        score=10,
+        classification="safe",
+        features={"scheme": "https"}
+    )
+    assert "The URL is classified as safe with a deterministic Phase 1 score of 10/100" in result["summary"]
+
+
+def test_fusion_summary_score_preservation_suspicious():
+    """Verify fusion properly preserves suspicious Phase 1 score and classification."""
+    result = fuse_intelligence(
+        score=55,
+        classification="suspicious",
+        features={"scheme": "https"}
+    )
+    assert "The URL is classified as suspicious with a deterministic Phase 1 score of 55/100" in result["summary"]
+
+
+def test_fusion_summary_score_preservation_phishing():
+    """Verify fusion properly preserves phishing Phase 1 score and classification."""
+    result = fuse_intelligence(
+        score=90,
+        classification="phishing",
+        features={"scheme": "https"}
+    )
+    assert "The URL is classified as phishing with a deterministic Phase 1 score of 90/100" in result["summary"]
+
+

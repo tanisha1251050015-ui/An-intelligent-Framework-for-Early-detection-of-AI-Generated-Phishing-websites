@@ -19,6 +19,7 @@ class ParsedURL:
     netloc: str
     path: str
     query: str
+    fragment: str
 
 
 def parse_url(raw: str) -> ParsedURL:
@@ -50,4 +51,5 @@ def parse_url(raw: str) -> ParsedURL:
         netloc=parts.netloc,
         path=parts.path,
         query=parts.query,
+        fragment=parts.fragment,
     )

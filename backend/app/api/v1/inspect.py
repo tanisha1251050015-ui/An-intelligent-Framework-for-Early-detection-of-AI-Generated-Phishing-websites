@@ -93,6 +93,8 @@ def _run_intelligence_pipeline(
     features_dict: dict,
     collection: dict | None,
     dns: dict | None,
+    score: int,
+    classification: str,
 ) -> tuple[dict | None, dict | None, dict | None, dict | None, dict | None, dict | None]:
     """Run the Phase 2C intelligence pipeline.
 
@@ -109,7 +111,14 @@ def _run_intelligence_pipeline(
     whois_data = query_whois(hostname)
 
     # Phase 2D: Secure Screenshot Acquisition
-    screenshot_data = capture_screenshot(url)
+    if dns and dns.get("status") in ("error", "timeout"):
+        screenshot_data = {
+            "status": "not_run",
+            "reason": "dns_resolution_failed",
+            "url": url,
+        }
+    else:
+        screenshot_data = capture_screenshot(url)
 
     # Phase 2D: Secure OCR Extraction
     ocr_data = None
@@ -117,6 +126,13 @@ def _run_intelligence_pipeline(
         image_id = screenshot_data.get("image_id")
         if image_id:
             ocr_data = extract_text(image_id)
+        else:
+            ocr_data = {"status": "failed", "reason": "invalid_image"}
+    else:
+        ocr_data = {
+            "status": "not_run",
+            "reason": "screenshot_unavailable",
+        }
 
     # Phase 2D: Secure LLM-Based Webpage Understanding
     llm_data = analyze_webpage(url=url, html_stats=collection, ocr_data=ocr_data)
@@ -131,6 +147,8 @@ def _run_intelligence_pipeline(
 
     # Phase 2C: Fusion engine
     intelligence = fuse_intelligence(
+        score=score,
+        classification=classification,
         features=features_dict,
         collection=collection,
         dns=dns,
@@ -183,7 +201,37 @@ def inspect_url(payload: InspectRequest, db: Session = Depends(get_db)) -> Inspe
             features_dict=dataclasses.asdict(features),
             collection=collection,
             dns=dns,
+            score=outcome.score,
+            classification=outcome.classification,
         )
+
+        # Priority 6: Campaign Detection
+        from app.core.campaign import analyze_campaign
+        recent_rows = db.scalars(
+            select(Inspection).order_by(Inspection.id.desc()).limit(100)
+        ).all()
+        historical = []
+        for r in recent_rows:
+            historical.append({
+                "features": json.loads(r.features_json or "{}"),
+                "dns": json.loads(r.dns_data) if r.dns_data else {},
+                "ssl": json.loads(r.ssl_data) if r.ssl_data else {},
+                "whois": json.loads(r.whois_data) if r.whois_data else {},
+            })
+        
+        historical.append({
+            "features": dataclasses.asdict(features),
+            "dns": dns or {},
+            "ssl": ssl_data or {},
+            "whois": whois_data or {},
+        })
+        
+        campaign_data = analyze_campaign(features.hostname, historical)
+        
+        # Priority 7: Explainability Layer
+        if intelligence:
+            from app.core.explainability import build_explanation
+            intelligence = build_explanation(intelligence, campaign_data)
 
     inspection = Inspection(
         url=features.url,

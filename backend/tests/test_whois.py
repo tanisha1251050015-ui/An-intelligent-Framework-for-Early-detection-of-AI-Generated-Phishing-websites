@@ -42,7 +42,7 @@ def test_valid_whois_lookup():
         with mock.patch("whois.whois", return_value=mock_response):
             data = query_whois("example.com")
             
-    assert data["status"] == "collected"
+    assert data["status"] == "success"
     assert data["registrar"] == "Test Registrar"
     assert data["domain_age_days"] >= 39
     assert data["days_until_expiration"] <= 21
@@ -71,8 +71,8 @@ def test_missing_whois_response():
         with mock.patch("whois.whois", side_effect=Exception("Connection reset by peer")):
             data = query_whois("example.com")
             
-    assert data["status"] == "unavailable"
-    assert data["reason"] == "whois_lookup_failed"
+    assert data["status"] == "failed"
+    assert data["reason"] == "lookup_failed"
     # 16. No sensitive details leaked
 
 
@@ -87,8 +87,8 @@ def test_whois_timeout():
         with mock.patch("whois.whois", side_effect=slow_whois):
             data = query_whois("example.com", timeout=0.1)
             
-    assert data["status"] == "unavailable"
-    assert data["reason"] == "whois_timeout"
+    assert data["status"] == "failed"
+    assert data["reason"] == "timeout"
 
 
 def test_whois_parser_failure_and_malformed():
@@ -103,7 +103,7 @@ def test_whois_parser_failure_and_malformed():
         with mock.patch("whois.whois", return_value=mock_response):
             data = query_whois("example.com")
             
-    assert data["status"] == "collected"
+    assert data["status"] == "success"
     # Should safely fail date parsing and return None or missing hints
     hints = data.get("risk_hints", [])
     hint_types = [h["type"] for h in hints]
@@ -126,7 +126,7 @@ def test_large_returned_whois_data():
         with mock.patch("whois.whois", return_value=mock_response):
             data = query_whois("example.com")
             
-    assert data["status"] == "collected"
+    assert data["status"] == "success"
     assert len(data["registrar"]) == MAX_STRING_LENGTH
     assert len(data["nameservers"]) == MAX_LIST_LENGTH
 
@@ -158,7 +158,7 @@ def test_missing_registrar_and_dates():
 def test_fusion_labels_signals():
     """15. Fusion correctly labels WHOIS signals with source: whois."""
     whois_data = {
-        "status": "collected",
+        "status": "success",
         "domain_age_days": 10,
         "risk_hints": [
             {
@@ -191,5 +191,5 @@ def test_integration_whois_failure_does_not_fail_inspect():
     
     # Check Phase 1 unchanged (example.com normally scores 0 without features)
     # Check WHOIS evidence indicates timeout/unavailable
-    assert data["whois"]["status"] == "unavailable"
-    assert data["whois"]["reason"] == "whois_timeout"
+    assert data["whois"]["status"] == "failed"
+    assert data["whois"]["reason"] == "timeout"

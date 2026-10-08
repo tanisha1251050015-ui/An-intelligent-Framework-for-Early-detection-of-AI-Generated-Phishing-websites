@@ -179,7 +179,7 @@ def test_resolution_failure_is_structured_error(monkeypatch):
 
     result = inspect_hostname("no-such-host.invalid")
     assert result["status"] == "error"
-    assert result["error"]["type"] == "gaierror"
+    assert result["error"]["type"] == "resolution_failed"
     assert result["address_count"] == 0
 
 
@@ -191,7 +191,7 @@ def test_socket_timeout_is_error(monkeypatch):
 
     result = inspect_hostname("slow.example.com")
     assert result["status"] == "error"
-    assert result["error"]["type"] == "oserror"
+    assert result["error"]["type"] == "timeout"
 
 
 def test_malformed_hostname_is_error(monkeypatch):
@@ -202,7 +202,7 @@ def test_malformed_hostname_is_error(monkeypatch):
 
     result = inspect_hostname("not a valid hostname")
     assert result["status"] == "error"
-    assert result["error"]["type"] == "gaierror"
+    assert result["error"]["type"] == "resolution_failed"
 
 
 def test_unexpected_exception_never_crashes(monkeypatch):
@@ -213,7 +213,7 @@ def test_unexpected_exception_never_crashes(monkeypatch):
 
     result = inspect_hostname("weird.example.com")
     assert result["status"] == "error"
-    assert result["error"]["type"] == "error"
+    assert result["error"]["type"] == "internal_error"
 
 
 def test_resolution_timeout_bounded(monkeypatch):
@@ -356,7 +356,7 @@ def test_dns_error_persisted_and_does_not_crash(client, db_session, monkeypatch)
 
     assert body["status"] == "completed"
     assert body["dns"]["status"] == "error"
-    assert body["dns"]["error"]["type"] == "gaierror"
+    assert body["dns"]["error"]["type"] == "resolution_failed"
     assert body["score"] == 0  # scoring unaffected by DNS failure
 
     row = db_session.scalar(select(Inspection))

@@ -40,11 +40,11 @@ def query_whois(hostname: str, timeout: float = WHOIS_TIMEOUT_SECONDS) -> dict:
         }
 
     # SSRF Protection: ensure the derived registrable domain resolves to a safe target
-    target = check_target(registrable_domain)
+    target = check_target(f"http://{registrable_domain}")
     if not target.allowed:
         return {
             "status": "failed",
-            "reason": "invalid_domain",  # Kept static as required
+            "reason": target.reason,
             "hostname": hostname,
             "registrable_domain_candidate": registrable_domain,
         }
@@ -134,7 +134,7 @@ def query_whois(hostname: str, timeout: float = WHOIS_TIMEOUT_SECONDS) -> dict:
 
         except Exception as exc:
             # We don't expose raw exception details
-            holder["error"] = "whois_lookup_failed"
+            holder["error"] = "lookup_failed"
 
     thread = threading.Thread(target=worker, daemon=True)
     thread.start()
@@ -142,23 +142,23 @@ def query_whois(hostname: str, timeout: float = WHOIS_TIMEOUT_SECONDS) -> dict:
 
     if thread.is_alive():
         return {
-            "status": "unavailable",
-            "reason": "whois_timeout",
+            "status": "failed",
+            "reason": "timeout",
             "hostname": hostname,
             "registrable_domain_candidate": registrable_domain,
         }
 
     if "error" in holder:
         return {
-            "status": "unavailable",
-            "reason": holder["error"],
+            "status": "failed",
+            "reason": "lookup_failed",
             "hostname": hostname,
             "registrable_domain_candidate": registrable_domain,
         }
 
     data = holder.get("data", {})
     return {
-        "status": "collected",
+        "status": "success",
         "hostname": hostname,
         "registrable_domain_candidate": registrable_domain,
         **data,

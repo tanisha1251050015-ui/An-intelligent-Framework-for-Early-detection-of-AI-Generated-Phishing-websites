@@ -3,15 +3,25 @@
   "name": "PIP Inspector",
   "version": "1.0.0",
   "description": "Transparent phishing URL inspection platform — browser extension. Submits the current URL to the PIP backend for deterministic heuristic scoring (Phase 1).",
-  "permissions": ["storage", "activeTab"],
-  "host_permissions": ["http://localhost:8000/*"],
+
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+
+  "host_permissions": [
+    "http://localhost:8000/*"
+  ],
+
   "action": {
     "default_title": "PIP Inspector",
     "default_popup": "popup/popup.html"
   },
+
   "background": {
     "service_worker": "background/service_worker.js"
   },
+
   "content_scripts": [
     {
       "matches": ["<all_urls>"],

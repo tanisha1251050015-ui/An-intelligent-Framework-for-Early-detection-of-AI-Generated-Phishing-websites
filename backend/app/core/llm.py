@@ -138,8 +138,12 @@ def analyze_webpage(url: str, html_stats: dict | None, ocr_data: dict | None) ->
     """Analyze webpage content using LLM."""
     
     html_text = ""
-    if html_stats and isinstance(html_stats.get("text"), str):
-        html_text = html_stats["text"]
+    if html_stats:
+        html_data = html_stats.get("html") if isinstance(html_stats.get("html"), dict) else html_stats
+        if isinstance(html_data.get("visible_text"), str):
+            html_text = html_data["visible_text"]
+        elif isinstance(html_data.get("text"), str):
+            html_text = html_data["text"]
         
     ocr_text = ""
     if ocr_data and isinstance(ocr_data.get("text"), str):

@@ -76,14 +76,20 @@ def capture_screenshot(url: str) -> dict[str, Any]:
         if image_path.exists():
             image_path.unlink()
         
-        reason = "error"
-        if "Timeout" in str(exc):
+        exc_str = str(exc).lower()
+        reason = "browser_error"
+        if "timeout" in exc_str:
             reason = "timeout"
+        elif "executable doesn't exist" in exc_str or "executable path" in exc_str:
+            reason = "dependency_unavailable"
+        elif "net::err_name_not_resolved" in exc_str:
+            reason = "dns_resolution_failed"
+        elif "net::err_connection" in exc_str or "unreachable" in exc_str:
+            reason = "domain_unreachable"
             
         return {
             "status": "failed",
             "reason": reason,
-            "message": str(exc),
             "url": url,
         }
 

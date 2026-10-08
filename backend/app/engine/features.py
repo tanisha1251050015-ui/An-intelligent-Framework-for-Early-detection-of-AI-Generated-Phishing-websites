@@ -108,6 +108,7 @@ class Features:
     is_ip_hostname: bool
     has_at_symbol: bool
     suspicious_keywords: tuple[str, ...] = ()
+    suspicious_keyword_locations: tuple[tuple[str, str], ...] = ()
     url_length: int = 0
     subdomain_count: int = 0
     query_parameter_count: int = 0
@@ -134,8 +135,19 @@ def extract_features(raw_url: str) -> Features:
     hostname = parsed.hostname
     is_ip = _is_ip_hostname(hostname)
 
-    lowered = raw_url.strip().lower()
-    keywords = tuple(sorted({kw for kw in SUSPICIOUS_KEYWORDS if kw in lowered}))
+    components = {
+        "hostname": parsed.hostname.lower(),
+        "path": parsed.path.lower(),
+        "query": parsed.query.lower(),
+        "fragment": parsed.fragment.lower(),
+    }
+    # Keep the legacy full-URL keyword set (and therefore Phase 1 penalties)
+    # while recording which URL component actually contains each keyword.
+    locations = tuple(
+        sorted((kw, component) for kw in SUSPICIOUS_KEYWORDS
+               for component, value in components.items() if kw in value)
+    )
+    keywords = tuple(sorted({kw for kw in SUSPICIOUS_KEYWORDS if kw in raw_url.strip().lower()}))
 
     # Subdomain count = labels beyond the registered domain (e.g. "example.com").
     labels = hostname.split(".") if not is_ip else []
@@ -150,6 +162,7 @@ def extract_features(raw_url: str) -> Features:
         is_ip_hostname=is_ip,
         has_at_symbol="@" in parsed.netloc,
         suspicious_keywords=keywords,
+        suspicious_keyword_locations=locations,
         url_length=len(raw_url.strip()),
         subdomain_count=subdomain_count,
         query_parameter_count=len(parse_qsl(parsed.query)),
