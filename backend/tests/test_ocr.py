@@ -20,7 +20,7 @@ def test_extract_text_success(mock_image, mock_image_to_string, tmp_path):
 
     with patch("app.core.ocr.SCREENSHOT_DIR", tmp_path):
         # Create dummy file
-        image_id = "test-1234"
+        image_id = "12345678-1234-1234-1234-123456789abc"
         test_file = tmp_path / f"{image_id}.jpg"
         test_file.write_bytes(b"dummy")
         
@@ -47,7 +47,7 @@ def test_extract_text_path_traversal(tmp_path):
         # Attempt traversal
         result = extract_text("../../../etc/passwd")
         assert result["status"] == "failed"
-        assert result["reason"] in ("invalid_path", "path_traversal_blocked", "file_not_found")
+        assert result["reason"] in ("invalid_image_id", "invalid_path", "path_traversal_blocked", "file_not_found")
 
 
 @patch("app.core.ocr.Image")
@@ -58,7 +58,7 @@ def test_extract_text_invalid_format(mock_image, tmp_path):
     mock_image.open.return_value.__enter__.return_value = mock_img_instance
 
     with patch("app.core.ocr.SCREENSHOT_DIR", tmp_path):
-        image_id = "test-format"
+        image_id = "12345678-1234-1234-1234-123456789abd"
         test_file = tmp_path / f"{image_id}.jpg"
         test_file.write_bytes(b"dummy")
 
@@ -77,7 +77,7 @@ def test_extract_text_excessive_dimensions(mock_image, tmp_path):
     mock_image.open.return_value.__enter__.return_value = mock_img_instance
 
     with patch("app.core.ocr.SCREENSHOT_DIR", tmp_path):
-        image_id = "test-dims"
+        image_id = "12345678-1234-1234-1234-123456789abe"
         test_file = tmp_path / f"{image_id}.jpg"
         test_file.write_bytes(b"dummy")
 
@@ -101,7 +101,7 @@ def test_extract_text_truncation(mock_image, mock_image_to_string, tmp_path):
     mock_image_to_string.return_value = long_text
 
     with patch("app.core.ocr.SCREENSHOT_DIR", tmp_path):
-        image_id = "test-trunc"
+        image_id = "12345678-1234-1234-1234-123456789abf"
         test_file = tmp_path / f"{image_id}.jpg"
         test_file.write_bytes(b"dummy")
         
@@ -125,7 +125,7 @@ def test_extract_text_timeout(mock_image, mock_image_to_string, tmp_path):
     mock_image_to_string.side_effect = RuntimeError("timeout")
 
     with patch("app.core.ocr.SCREENSHOT_DIR", tmp_path):
-        image_id = "test-timeout"
+        image_id = "12345678-1234-1234-1234-123456789ab0"
         test_file = tmp_path / f"{image_id}.jpg"
         test_file.write_bytes(b"dummy")
         
