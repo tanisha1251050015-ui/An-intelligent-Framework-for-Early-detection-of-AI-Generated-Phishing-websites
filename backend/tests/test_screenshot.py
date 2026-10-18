@@ -25,7 +25,7 @@ def test_screenshot_blocked_target(mock_check_target):
 
 @patch("playwright.sync_api.sync_playwright")
 @patch("app.collection.screenshot.check_target")
-def test_screenshot_success(mock_check_target, mock_sync_playwright):
+def test_screenshot_success(mock_check_target, mock_sync_playwright, tmp_path):
     """Test successful screenshot capture."""
     mock_check_target.return_value = TargetCheck(
         allowed=True, status="allowed", reason=""
@@ -35,8 +35,10 @@ def test_screenshot_success(mock_check_target, mock_sync_playwright):
     mock_context = MagicMock()
     mock_browser = MagicMock()
     mock_page = MagicMock()
+    mock_page.screenshot.side_effect = lambda path, **kwargs: open(path, 'wb').write(b'mock-jpeg')
     mock_playwright = MagicMock()
-    
+    from app.collection import screenshot as screenshot_module
+    screenshot_module.SCREENSHOT_DIR = tmp_path
     mock_sync_playwright.return_value.__enter__.return_value = mock_playwright
     mock_playwright.chromium.launch.return_value = mock_browser
     mock_browser.new_context.return_value = mock_context
@@ -48,6 +50,7 @@ def test_screenshot_success(mock_check_target, mock_sync_playwright):
     assert result["url"] == "https://example.com"
     assert "image_id" in result
     assert result["resolution"] == "1280x720"
+    assert result["size_bytes"] == len(b"mock-jpeg")
     mock_page.goto.assert_called_once_with(
         "https://example.com", timeout=10000, wait_until="load"
     )
